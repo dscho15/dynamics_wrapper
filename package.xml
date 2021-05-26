@@ -14,9 +14,10 @@
   <depend>rospy</depend>
   <depend>kdl_parser</depend>
   <depend>eigen_conversions</depend>
+  <depend>xacro</depend>
 
   <export>
 
   </export>
-  
+
 </package>

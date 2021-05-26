@@ -2,7 +2,7 @@
 
 ## The purpose
 
-KDL stands for "The Kinematic and Dynamic Library", which takes care of modelling and computation of kinematic chains for serial robots, such as Franka Emika Panda.
+KDL stands for "The Kinematic and Dynamic Library", which takes care of modelling and computation of kinematic chains for serial robots, such as the Franka Emika Panda manipulator.
 
 ## The package
 
@@ -33,6 +33,7 @@ project
 
 ## Guide
 
+
 Under ***dynamics_wrapper/scripts/***, a file named "**how_to_use.py**" gives a guideline on how to make use of the interface. One thing worth noting, *initilization* of the code requires a rosparamter containing **URDF** information under the name **robot_description** and where the chain should **start** and **end** to be available on the parameter server, otherwise KDL will terminate and throw a error-message.
 
 ```c++
@@ -50,6 +51,8 @@ Under ***dynamics_wrapper/scripts/***, a file named "**how_to_use.py**" gives a 
     }
 
 ```
+
+The project therefore also comes with a URDF file for the Franka Emika Panda robot, simply launch **robot_description.launch** before **how_to_use.py**.
 
 ## Useful links
 
