@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="panda">
 
-    <xacro:macro name="panda_arm" params="robot_name description_pkg:='franka_description' ">
+    <xacro:macro name="panda_arm" params="robot_name ">
 
         <link name = "world"/>
 
