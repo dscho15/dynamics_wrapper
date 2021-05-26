@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>dynamics_wrapper</name>
+  <version>1.0.0</version>
+  <description>A KDL-python wrapper</description>
+
+  <maintainer email="dscho15@student.sdu.dk">daniel</maintainer>
+
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>roscpp</depend>
+  <depend>std_msgs</depend>
+  <depend>rospy</depend>
+  <depend>kdl_parser</depend>
+  <depend>eigen_conversions</depend>
+
+  <export>
+
+  </export>
+  
+</package>
