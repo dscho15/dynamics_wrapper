@@ -33,7 +33,7 @@ project
 
 ## Guide
 
-In the directory ***dynamics_wrapper/scripts/***, a file named "**how_to_use.py**" gives an exemplification on how to make use of the interface. One thing worth noting, *initilization* of the code is necessary, it requires a **rosparameter** to be loaded onto the ***ROS-server***, which shall contain **URDF** information and has to be labeled as **robot_description** and in addition, it is required to note where the chain **begins** and **ends**, otherwise a runtime-error will occur, followed by termination of the program.
+In the directory ***dynamics_wrapper/scripts/***, a file named "**how_to_use.py**" gives an exemplification on how to make use of the interface. One thing worth noting, *initilization* of the code is necessary before utilization, it requires a **rosparameter** to be loaded onto the ***ROS-server***, which shall contain **URDF** information and has to be labeled as **robot_description** and in addition, it is required to note where the chain **begins** and **ends**, otherwise a runtime-error will occur, followed by termination of the program.
 
 ```c++
 
@@ -51,7 +51,9 @@ In the directory ***dynamics_wrapper/scripts/***, a file named "**how_to_use.py*
 
 ```
 
-The submodule comes with an URDF file for the Franka Emika Panda robot, simply launch **robot_description.launch** and then **how_to_use.py**.
+The submodule comes with an URDF file for the Franka Emika Panda robot, simply launch **robot_description.launch** and then **how_to_use.py**. A more comprehensive utilization can be found at:
+
+- https://github.com/dscho15/joint_velocity_controller
 
 ## Useful links
 
