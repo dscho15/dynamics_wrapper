@@ -6,7 +6,7 @@ KDL stands for "The Kinematic and Dynamic Library", which takes care of modellin
 
 ## The package
 
-The package is a wrapper for the exisiting library *orocos_kdl* to enable for faster development in Python. The code utilizes PyObjects and one should familiarize themself with those before expanding the code base.
+The package is a wrapper for the exisiting library *orocos_kdl* to enable for faster development in Python. The code utilizes PyObjects and one should familiarize themself with Numpy's library before expanding the code base.
 
 ```
 project
@@ -33,8 +33,7 @@ project
 
 ## Guide
 
-
-Under ***dynamics_wrapper/scripts/***, a file named "**how_to_use.py**" gives a guideline on how to make use of the interface. One thing worth noting, *initilization* of the code requires a rosparamter containing **URDF** information under the name **robot_description** and where the chain should **start** and **end** to be available on the parameter server, otherwise KDL will terminate and throw a error-message.
+In the directory ***dynamics_wrapper/scripts/***, a file named "**how_to_use.py**" gives an exemplification on how to make use of the interface. One thing worth noting, *initilization* of the code is necessary, it requires a **rosparameter** to be loaded onto the ***ROS-server***, which shall contain **URDF** information and has to be labeled as **robot_description** and in addition, it is required to note where the chain **begins** and **ends**, otherwise a runtime-error will occur, followed by termination of the program.
 
 ```c++
 
@@ -52,7 +51,7 @@ Under ***dynamics_wrapper/scripts/***, a file named "**how_to_use.py**" gives a 
 
 ```
 
-The project therefore also comes with a URDF file for the Franka Emika Panda robot, simply launch **robot_description.launch** before **how_to_use.py**.
+The submodule comes with an URDF file for the Franka Emika Panda robot, simply launch **robot_description.launch** and then **how_to_use.py**.
 
 ## Useful links
 
