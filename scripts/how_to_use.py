@@ -1,5 +1,4 @@
 from dynamics_wrapper import kdl_interface
-import numpy as np
 
 from std_msgs.msg import String
 from std_msgs.msg import Float64MultiArray
@@ -12,31 +11,30 @@ interface = kdl_interface("kdl_test")
 
 # Init KDL
 response = interface.initialize(link_0, link_8)
-# print("The interface is initialized with code: ", response.data)
 
-for i in range(10000):
+q = Float64MultiArray(data=[0, 0, 0, -1.5707, 0, 1.5707, 0])
 
-    q = Float64MultiArray(data=[0, 0, 0, -1.5707, 0, 1.5707, 0])
-    # print("Joint-values : ", q.data)
+q_d = Float64MultiArray(data=[0, 0, 0, -1.5707, 0, 0, 0])
 
-    q_d = Float64MultiArray(data=[0, 0, 0, -1.5707, 0, 0, 0])
-    # print("Joint-values : ", q_d.data)
+qd = Float64MultiArray(data=[0, 1, 0, 0, 0, 0, 0])
 
-    cart_pose = interface.car_euler(q)
-    # print("Cartesian Pose : ", np.round(cart_pose, 3))
+pose_euler = interface.pose_euler(q)
 
-    car_error_euler = interface.car_error_euler(q, q_d)
-    # print("Cartesian Pose : ", np.round(car_error_euler, 3))
+pose_error_euler = interface.pose_error_euler(q, q_d)
 
-    car_error_quaternion = interface.car_error_quaternion(q, q_d)
-    # print("Cartesian Pose : ", np.round(car_error_quaternion, 3))
+pose_quaternion = interface.pose_quaternion(q)
 
-    jac_geometric = interface.jac_geometric(q)
-    # print("Jacobian Geometric : ", np.round(jac_geometric, 3))
+pose_error_quaternion = interface.pose_error_quaternion(q, q_d)
 
-    jac_analytic = interface.jac_analytic(q)
-    # print("Jacobian Analytic : ", np.round(jac_analytic, 3))
+jac_geometric = interface.jac_geometric(q)
 
+jac_analytic = interface.jac_analytic(q)
+
+gravity = interface.gravity(q)
+
+coriolis = interface.coriolis(q, qd)
+
+inertia_matrix = interface.inertia_matrix(q)
 
 
 

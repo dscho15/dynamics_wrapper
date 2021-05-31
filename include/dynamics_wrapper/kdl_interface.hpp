@@ -15,6 +15,7 @@
 #include <kdl_parser/kdl_parser.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <kdl/chainjnttojacsolver.hpp>
+#include <kdl/chaindynparam.hpp>
 
 namespace dynamics_wrapper{
 
@@ -27,15 +28,23 @@ class kdl_interface
 
         std_msgs::Bool initialize(const std_msgs::String & link_start, const std_msgs::String & link_end);
 
-        std_msgs::Float64MultiArray car_euler(std_msgs::Float64MultiArray q_cur_);
+        std_msgs::Float64MultiArray pose_euler(std_msgs::Float64MultiArray q_);
 
-        std_msgs::Float64MultiArray car_error_euler(std_msgs::Float64MultiArray q_cur_, std_msgs::Float64MultiArray q_d_);
+        std_msgs::Float64MultiArray pose_error_euler(std_msgs::Float64MultiArray q_e_, std_msgs::Float64MultiArray q_d_);
 
-        std_msgs::Float64MultiArray car_error_quaternion(std_msgs::Float64MultiArray q_cur_, std_msgs::Float64MultiArray q_d_);
+        std_msgs::Float64MultiArray pose_quaternion(std_msgs::Float64MultiArray q_);
 
-        std_msgs::Float64MultiArray jac_geometric(std_msgs::Float64MultiArray q_cur_);
+        std_msgs::Float64MultiArray pose_error_quaternion(std_msgs::Float64MultiArray q_e_, std_msgs::Float64MultiArray q_d_);
 
-        std_msgs::Float64MultiArray jac_analytic(std_msgs::Float64MultiArray q_e_);
+        std_msgs::Float64MultiArray jac_geometric(std_msgs::Float64MultiArray q_);
+
+        std_msgs::Float64MultiArray jac_analytic(std_msgs::Float64MultiArray q_);
+
+        std_msgs::Float64MultiArray gravity(std_msgs::Float64MultiArray q_);
+
+        std_msgs::Float64MultiArray coriolis(std_msgs::Float64MultiArray q_, std_msgs::Float64MultiArray qd_);
+
+        std_msgs::Float64MultiArray inertia_matrix(std_msgs::Float64MultiArray q_);
 
 
     private:
@@ -47,6 +56,8 @@ class kdl_interface
         std::shared_ptr<KDL::ChainFkSolverPos_recursive> _fk_solver;
 
         std::shared_ptr<KDL::ChainJntToJacSolver> _jac_solver;
+
+        std::shared_ptr<KDL::ChainDynParam> _dyn_solver;
 
         int _joints = 7;
 

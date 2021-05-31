@@ -50,7 +50,7 @@ class kdl_interface(object):
         msg = self._kdl_interface_wrapper.initialize(link_b, link_e)
         return self._from_cpp(msg, Bool)
 
-    def car_euler(self, q):
+    def pose_euler(self, q):
         """
             Return a pose_euler (ZYX) given the joint-angles
         """
@@ -58,10 +58,10 @@ class kdl_interface(object):
             rospy.ROSException(
                 'Argument 1 is not a std_msgs/Float64MultiArray')
         q = self._to_cpp(q)
-        msg = self._kdl_interface_wrapper.car_euler(q)
+        msg = self._kdl_interface_wrapper.pose_euler(q)
         return msg
 
-    def car_error_euler(self, q_e, q_d):
+    def pose_error_euler(self, q_e, q_d):
         """
             Return a pose_euler error (ZYX) given end_effector and desired joint-angles
         """
@@ -73,10 +73,21 @@ class kdl_interface(object):
                 'Argument 2 is not a std_msgs/Float64MultiArray')
         q_e = self._to_cpp(q_e)
         q_d = self._to_cpp(q_d)
-        msg = self._kdl_interface_wrapper.car_error_euler(q_e, q_d)
+        msg = self._kdl_interface_wrapper.pose_error_euler(q_e, q_d)
+        return msg
+    
+    def pose_quaternion(self, q):
+        """
+            Return a pose with quaternion [7 x 1]
+        """
+        if not isinstance(q, Float64MultiArray):
+            rospy.ROSException(
+                'Argument 1 is not a std_msgs/Float64MultiArray')
+        q = self._to_cpp(q)
+        msg = self._kdl_interface_wrapper.pose_quaternion(q)
         return msg
 
-    def car_error_quaternion(self, q_e, q_d):
+    def pose_error_quaternion(self, q_e, q_d):
         """
             Return a pose_quat error given end_effector and desired joint-angles
         """
@@ -88,7 +99,7 @@ class kdl_interface(object):
                 'Argument 2 is not a std_msgs/Float64MultiArray')
         q_e = self._to_cpp(q_e)
         q_d = self._to_cpp(q_d)
-        msg = self._kdl_interface_wrapper.car_error_quaternion(q_e, q_d)
+        msg = self._kdl_interface_wrapper.pose_error_quaternion(q_e, q_d)
         return msg
 
     def jac_geometric(self, q):
@@ -111,4 +122,41 @@ class kdl_interface(object):
                 'Argument 1 is not a std_msgs/Float64MultiArray')
         q = self._to_cpp(q)
         msg = self._kdl_interface_wrapper.jac_analytic(q)
+        return msg
+
+    def gravity(self, q):
+        """
+            Return a gravity vector
+        """
+        if not isinstance(q, Float64MultiArray):
+            rospy.ROSException(
+                'Argument 1 is not a std_msgs/Float64MultiArray')
+        q = self._to_cpp(q)
+        msg = self._kdl_interface_wrapper.gravity(q)
+        return msg
+    
+    def coriolis(self, q, qd):
+        """
+            Return a coriolis vector
+        """
+        if not isinstance(q, Float64MultiArray):
+            rospy.ROSException(
+                'Argument 1 is not a std_msgs/Float64MultiArray')
+        if not isinstance(qd, Float64MultiArray):
+            rospy.ROSException(
+                'Argument 2 is not a std_msgs/Float64MultiArray')
+        q = self._to_cpp(q)
+        qd = self._to_cpp(qd)
+        msg = self._kdl_interface_wrapper.coriolis(q, qd)
+        return msg
+    
+    def inertia_matrix(self, q):
+        """
+            Return the analytical jacobian (euler ZYX) given joint-angles
+        """
+        if not isinstance(q, Float64MultiArray):
+            rospy.ROSException(
+                'Argument 1 is not a std_msgs/Float64MultiArray')
+        q = self._to_cpp(q)
+        msg = self._kdl_interface_wrapper.inertia_matrix(q)
         return msg

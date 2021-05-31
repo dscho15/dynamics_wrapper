@@ -50,7 +50,7 @@ std::string to_python(const M& msg)
 
     Python objects interface
 
-    Some very usefull links:
+    Some very useful links:
 
     - https://github.com/erikfrojdh/python_cpp_example/blob/master/src/my_module.cpp
     - https://stackoverflow.com/questions/25494858/creating-numpy-array-in-c-extension-segfaults
@@ -130,28 +130,37 @@ class kdl_interface_wrapper : public dynamics_wrapper::kdl_interface
         return to_python<std_msgs::Bool>(msg);
     }
 
-    PyObject * car_euler(const std::string& q_)
+    PyObject * pose_euler(const std::string& q_)
     {  
         std_msgs::Float64MultiArray q = from_python<std_msgs::Float64MultiArray>(q_);
-        std_msgs::Float64MultiArray msg = kdl_interface::car_euler(q);
+        std_msgs::Float64MultiArray msg = kdl_interface::pose_euler(q);
         PyObject * arr = to_python_vec(msg.data);
         return arr;
     }
 
-    PyObject * car_error_euler(const std::string & q_e_, const std::string & q_d_)
+    PyObject * pose_error_euler(const std::string & q_e_, const std::string & q_d_)
     {
         std_msgs::Float64MultiArray q_e = from_python<std_msgs::Float64MultiArray>(q_e_);
         std_msgs::Float64MultiArray q_d = from_python<std_msgs::Float64MultiArray>(q_d_);
-        std_msgs::Float64MultiArray msg = kdl_interface::car_error_euler(q_e, q_d);
+        std_msgs::Float64MultiArray msg = kdl_interface::pose_error_euler(q_e, q_d);
         PyObject * arr = to_python_vec(msg.data);
         return arr;
     }
 
-    PyObject * car_error_quaternion(const std::string & q_e_, const std::string & q_d_)
+    PyObject * pose_quaternion(const std::string & q_)
+    {
+        std_msgs::Float64MultiArray q = from_python<std_msgs::Float64MultiArray>(q_);
+        std_msgs::Float64MultiArray msg = kdl_interface::pose_quaternion(q);
+        PyObject * arr = to_python_vec(msg.data);
+        return arr;
+
+    }
+
+    PyObject * pose_error_quaternion(const std::string & q_e_, const std::string & q_d_)
     {
         std_msgs::Float64MultiArray q_e = from_python<std_msgs::Float64MultiArray>(q_e_);
         std_msgs::Float64MultiArray q_d = from_python<std_msgs::Float64MultiArray>(q_d_);
-        std_msgs::Float64MultiArray msg = kdl_interface::car_error_quaternion(q_e, q_d);
+        std_msgs::Float64MultiArray msg = kdl_interface::pose_error_quaternion(q_e, q_d);
         PyObject * arr = to_python_vec(msg.data);
         return arr;
     }
@@ -172,6 +181,31 @@ class kdl_interface_wrapper : public dynamics_wrapper::kdl_interface
         return arr;
     }
 
+    PyObject * gravity(const std::string & q_)
+    {
+        std_msgs::Float64MultiArray q = from_python<std_msgs::Float64MultiArray>(q_);
+        std_msgs::Float64MultiArray msg = kdl_interface::gravity(q);
+        PyObject * arr = to_python_vec(msg.data);
+        return arr;
+    }
+
+    PyObject * coriolis(const std::string & q_, const std::string & qd_)
+    {
+        std_msgs::Float64MultiArray q = from_python<std_msgs::Float64MultiArray>(q_);
+        std_msgs::Float64MultiArray qd = from_python<std_msgs::Float64MultiArray>(qd_);
+        std_msgs::Float64MultiArray msg = kdl_interface::coriolis(q, qd);
+        PyObject * arr = to_python_vec(msg.data);
+        return arr;
+    }
+
+    PyObject * inertia_matrix(const std::string & q_)
+    {
+        std_msgs::Float64MultiArray q = from_python<std_msgs::Float64MultiArray>(q_);
+        std_msgs::Float64MultiArray msg = kdl_interface::inertia_matrix(q);
+        PyObject * arr = to_python_mat(msg.data, q.data.size());
+        return arr;
+    }
+
 };
 
 
@@ -179,9 +213,13 @@ BOOST_PYTHON_MODULE(_kdl_interface_cpp)
 {
     boost::python::class_<kdl_interface_wrapper>("kdl_interface_wrapper", boost::python::init<>())
         .def("initialize", &kdl_interface_wrapper::initialize)
-        .def("car_euler", &kdl_interface_wrapper::car_euler)
-        .def("car_error_euler", &kdl_interface_wrapper::car_error_euler)
-        .def("car_error_quaternion", &kdl_interface_wrapper::car_error_quaternion)
+        .def("pose_euler", &kdl_interface_wrapper::pose_euler)
+        .def("pose_error_euler", &kdl_interface_wrapper::pose_error_euler)
+        .def("pose_error_quaternion", &kdl_interface_wrapper::pose_error_quaternion)
+        .def("pose_quaternion", &kdl_interface_wrapper::pose_quaternion)
         .def("jac_geometric", &kdl_interface_wrapper::jac_geometric)
-        .def("jac_analytic", &kdl_interface_wrapper::jac_analytic);
+        .def("jac_analytic", &kdl_interface_wrapper::jac_analytic)
+        .def("gravity", &kdl_interface_wrapper::gravity)
+        .def("coriolis", &kdl_interface_wrapper::coriolis)
+        .def("inertia_matrix", &kdl_interface_wrapper::inertia_matrix);
 }

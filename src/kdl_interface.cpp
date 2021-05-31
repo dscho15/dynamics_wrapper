@@ -6,11 +6,10 @@
 namespace dynamics_wrapper{
 
     kdl_interface::kdl_interface()
-    {
+    {}
 
-    }
-
-    std_msgs::Bool kdl_interface::initialize(const std_msgs::String & link_start, const std_msgs::String & link_end)
+    std_msgs::Bool 
+    kdl_interface::initialize(const std_msgs::String & link_start, const std_msgs::String & link_end)
     {
         std_msgs::Bool msg;
         msg.data = 0; _init = false;
@@ -39,6 +38,12 @@ namespace dynamics_wrapper{
             return msg;
         }
 
+        if(_dyn_solver = std::make_shared<KDL::ChainDynParam>(*_chain.get(), KDL::Vector(0, 0, -9.82)); _dyn_solver == nullptr)
+        {
+            ROS_ERROR("Failed to create the dynamics solver in KDL");
+            return msg;
+        }
+
         _joints = _chain->getNrOfJoints();
 
         msg.data = 1; _init = true;
@@ -46,7 +51,8 @@ namespace dynamics_wrapper{
         return msg;
     }
 
-    std_msgs::Float64MultiArray kdl_interface::car_euler(std_msgs::Float64MultiArray q_)
+    std_msgs::Float64MultiArray 
+    kdl_interface::pose_euler(std_msgs::Float64MultiArray q_)
     {
         // Msg
         std_msgs::Float64MultiArray msg;
@@ -76,7 +82,8 @@ namespace dynamics_wrapper{
         return msg;
     }
 
-    std_msgs::Float64MultiArray kdl_interface::car_error_euler(std_msgs::Float64MultiArray q_e_, std_msgs::Float64MultiArray q_d_)
+    std_msgs::Float64MultiArray 
+    kdl_interface::pose_error_euler(std_msgs::Float64MultiArray q_e_, std_msgs::Float64MultiArray q_d_)
     {
         // Msg
         std_msgs::Float64MultiArray msg;
@@ -84,8 +91,8 @@ namespace dynamics_wrapper{
         if(_init == false) return msg;
 
         // Updata
-        auto msg_d = car_euler(q_d_);
-        auto msg_e = car_euler(q_e_);
+        auto msg_d = pose_euler(q_d_);
+        auto msg_e = pose_euler(q_e_);
 
         // Resize
         msg.data.resize(6);
@@ -96,51 +103,73 @@ namespace dynamics_wrapper{
         return msg;
     }
 
-    std_msgs::Float64MultiArray kdl_interface::car_error_quaternion(std_msgs::Float64MultiArray q_e_, std_msgs::Float64MultiArray q_d_)
+    std_msgs::Float64MultiArray 
+    kdl_interface::pose_quaternion(std_msgs::Float64MultiArray q_)
     {
         // Msg
         std_msgs::Float64MultiArray msg;
-        
+
         if(_init == false) return msg;
 
-        if(q_e_.data.size() != q_d_.data.size() and q_d_.data.size() == _joints) return msg;
-
-        // Resize to 6 [x y z | x y z]
-        msg.data.resize(6);
+        if(q_.data.size() != _joints) return msg;
 
         // KDL Jnt_array, Frame
-        KDL::JntArray q_e(_joints), q_d(_joints);
-        KDL::Frame x_e, x_d;
+        KDL::JntArray q(_joints);
+        KDL::Frame x;
 
-        // Update the kdl_jnt arrays
-        q_e.data = Eigen::Map<Eigen::VectorXd, Eigen::Unaligned>(q_e_.data.data(), q_e_.data.size());
-        q_d.data = Eigen::Map<Eigen::VectorXd, Eigen::Unaligned>(q_d_.data.data(), q_d_.data.size());
+        // Fill JntArray
+        q.data = Eigen::Map<Eigen::VectorXd, Eigen::Unaligned>(q_.data.data(), q_.data.size());
 
-        // Determine the Cartesian homogenous transformations for each
-        _fk_solver->JntToCart(q_e, x_e);
-        _fk_solver->JntToCart(q_d, x_d);
+        // Compute [4 x 4] homogenous transformatrion matrix
+        _fk_solver->JntToCart(q, x);
 
-        // Rotation matrices
-        Eigen::Matrix3d R_e = Eigen::Map<Eigen::Matrix<double, 3, 3, Eigen::RowMajor>>(x_e.M.data);
-        Eigen::Matrix3d R_d =  Eigen::Map<Eigen::Matrix<double, 3, 3, Eigen::RowMajor>>(x_d.M.data);
+        // Extract [3 x 3] rotation matrix
+        Eigen::Matrix3d R = Eigen::Map<Eigen::Matrix<double, 3, 3, Eigen::RowMajor>>(x.M.data);
 
-        // Define quaternions 
-        Eigen::Quaterniond quat_d(R_d);
-        Eigen::Quaterniond quat_e(R_e);
-        Eigen::Quaterniond quat = quat_d * quat_e.inverse();
+        // Extract Quaternion
+        Eigen::Quaterniond quat(R);
 
-        // Compute error_quat
-        msg.data[0] = x_d.p.data[0] - x_e.p.data[0];
-        msg.data[1] = x_d.p.data[1] - x_e.p.data[1]; 
-        msg.data[2] = x_d.p.data[2] - x_e.p.data[2];
+        msg.data.resize(7);
+        msg.data[0] = x.p.data[0];
+        msg.data[1] = x.p.data[1]; 
+        msg.data[2] = x.p.data[2];
         msg.data[3] = quat.x();
         msg.data[4] = quat.y();
         msg.data[5] = quat.z();
+        msg.data[6] = quat.w();
 
         return msg;
     }
 
-    std_msgs::Float64MultiArray kdl_interface::jac_geometric(std_msgs::Float64MultiArray q_)
+    std_msgs::Float64MultiArray 
+    kdl_interface::pose_error_quaternion(std_msgs::Float64MultiArray q_e_, std_msgs::Float64MultiArray q_d_)
+    {
+        std_msgs::Float64MultiArray msg;
+
+        if(_init == false) return msg;
+
+        if(q_e_.data.size() != q_d_.data.size() and q_e_.data.size() != _joints) return msg;
+
+        auto pose_e = pose_quaternion(q_e_);
+        auto pose_d = pose_quaternion(q_d_);
+
+        Eigen::Quaterniond q_e(pose_e.data[6], pose_e.data[3], pose_e.data[4], pose_e.data[5]);
+        Eigen::Quaterniond q_d(pose_d.data[6], pose_d.data[3], pose_d.data[4], pose_d.data[5]);
+        Eigen::Quaterniond q = q_d * q_e.inverse();
+
+        msg.data.resize(6);
+        msg.data[0] = pose_d.data[0] - pose_e.data[0];
+        msg.data[1] = pose_d.data[1] - pose_e.data[1];
+        msg.data[2] = pose_d.data[2] - pose_e.data[2];
+        msg.data[3] = q.x();
+        msg.data[4] = q.y();
+        msg.data[5] = q.z();
+
+        return msg;
+    }
+
+    std_msgs::Float64MultiArray 
+    kdl_interface::jac_geometric(std_msgs::Float64MultiArray q_)
     {
         // Msg
         std_msgs::Float64MultiArray msg;
@@ -166,7 +195,8 @@ namespace dynamics_wrapper{
         return msg;
     }
 
-    std_msgs::Float64MultiArray kdl_interface::jac_analytic(std_msgs::Float64MultiArray q_)
+    std_msgs::Float64MultiArray 
+    kdl_interface::jac_analytic(std_msgs::Float64MultiArray q_)
     {
         // Msg
         std_msgs::Float64MultiArray msg;
@@ -212,6 +242,82 @@ namespace dynamics_wrapper{
         // Transfrom message
         tf::matrixEigenToMsg(T_jac, msg);
         
+        return msg;
+    }
+
+    std_msgs::Float64MultiArray 
+    kdl_interface::gravity(std_msgs::Float64MultiArray q_)
+    {
+        std_msgs::Float64MultiArray msg;
+
+        if(_init == false) return msg;
+
+        // Load data into KDL framework
+        if(q_.data.size() != _joints) return msg;
+        
+        // Variables
+        KDL::JntArray q(_joints);
+        KDL::JntArray g(_joints);
+
+        // Parse joint values
+        q.data = Eigen::Map<Eigen::VectorXd, Eigen::Unaligned>(q_.data.data(), q_.data.size());
+
+        // Gravity determination
+        _dyn_solver->JntToGravity(q, g);
+
+        msg.data = std::vector<double>(&g.data[0], g.data.data()+g.data.size());
+
+        return msg;
+    }
+
+    std_msgs::Float64MultiArray 
+    kdl_interface::coriolis(std_msgs::Float64MultiArray q_, std_msgs::Float64MultiArray qd_)
+    {
+        std_msgs::Float64MultiArray msg;
+
+        if(_init == false) return msg;
+
+        // Load data into KDL framework
+        if(q_.data.size() != _joints and q_.data.size() == qd_.data.size()) return msg;
+
+        // Variables
+        KDL::JntArray q(_joints), qd(_joints), c(_joints);
+
+        // Parse joint values
+        q.data = Eigen::Map<Eigen::VectorXd, Eigen::Unaligned>(q_.data.data(), q_.data.size());
+        qd.data = Eigen::Map<Eigen::VectorXd, Eigen::Unaligned>(qd_.data.data(), qd_.data.size());
+
+        // Coriolis determination
+        _dyn_solver->JntToCoriolis(q, qd, c);
+
+        msg.data = std::vector<double>(&c.data[0], c.data.data()+c.data.size());
+
+        return msg;
+    }
+
+    std_msgs::Float64MultiArray 
+    kdl_interface::inertia_matrix(std_msgs::Float64MultiArray q_)
+    {
+        std_msgs::Float64MultiArray msg;
+
+        if(_init == false) return msg;
+
+        // Load data into KDL framework
+        if(q_.data.size() != _joints) return msg;
+
+        // Variables
+        KDL::JntArray q(_joints);
+        KDL::JntSpaceInertiaMatrix m(_joints);
+
+        // Parse joint values
+        q.data = Eigen::Map<Eigen::VectorXd, Eigen::Unaligned>(q_.data.data(), q_.data.size());
+
+        // Mass Matrix
+        _dyn_solver->JntToMass(q, m);
+
+        // Parse back to message
+        msg.data = std::vector<double>(&m.data(0, 0), m.data.data()+m.data.size());
+
         return msg;
     }
 
